@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-card-wrapper">
+        <div class="auth-image-side"></div>
+        <div class="auth-form-side">
+            <h2 style="margin-bottom: 2.5rem; letter-spacing: 2px; text-transform: uppercase;">Moshi Moshi </h2>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <form action="{{ url_for('register') }}" method="POST">
+                <div class="form-group">
+                    <label>New Operator Designation</label>
+                    <input type="text" name="username" placeholder="Username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Secure Access Key</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label>Initial Credit Allocation (INR)</label>
+                    <input type="number" step="0.01" name="salary" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn-primary">Initialize Access</button>
+            </form>
+            <p
+                style="margin-top: 2rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                Already connected? <a href="{{ url_for('login') }}"
+                    style="color: var(--primary); text-decoration: none; font-weight: 700;">Authorize Access</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
