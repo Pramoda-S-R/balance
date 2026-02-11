@@ -180,6 +180,17 @@ def add_transaction():
     return redirect(url_for("index"))
 
 
+@app.route("/update_profile", methods=["POST"])
+@login_required
+def update_profile():
+    billing_cycle = request.form.get("billing_cycle")
+    if billing_cycle:
+        current_user.salary_credit_day = int(billing_cycle)
+        db.session.commit()
+        flash("Profile updated successfully")
+    return redirect(url_for("index"))
+
+
 @app.route("/logout")
 @login_required
 def logout():
