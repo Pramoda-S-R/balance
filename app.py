@@ -198,21 +198,59 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.context_processor
+def inject_budgets():
+    if current_user.is_authenticated:
+        budgets = (
+            MonthlyBudget.query.filter_by(user_id=current_user.id)
+            .order_by(MonthlyBudget.month_start_date.desc())
+            .all()
+        )
+        return dict(available_budgets=budgets)
+    return dict(available_budgets=[])
+
+
 @app.route("/download_statement")
 @login_required
 def download_statement():
-    cycle_start = get_current_cycle_start(current_user.salary_credit_day)
-    budget = MonthlyBudget.query.filter_by(
-        user_id=current_user.id, month_start_date=cycle_start
-    ).first()
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
+
+    if year and month:
+        # Find the budget that started in that specific month
+        import sqlalchemy
+        budget = MonthlyBudget.query.filter(
+            MonthlyBudget.user_id == current_user.id,
+            sqlalchemy.extract("year", MonthlyBudget.month_start_date) == year,
+            sqlalchemy.extract("month", MonthlyBudget.month_start_date) == month,
+        ).first()
+
+        if not budget:
+            flash(f"No biological data found for {datetime.date(year, month, 1).strftime('%B %Y')}.")
+            return redirect(url_for("index"))
+        
+        cycle_start = budget.month_start_date
+    else:
+        cycle_start = get_current_cycle_start(current_user.salary_credit_day)
+        budget = MonthlyBudget.query.filter_by(
+            user_id=current_user.id, month_start_date=cycle_start
+        ).first()
 
     if not budget:
         flash("No biological data found for current cycle.")
         return redirect(url_for("index"))
 
+    # Determine the end of the selected cycle
+    next_month_date = cycle_start + datetime.timedelta(days=32)
+    next_cycle_start = get_current_cycle_start(
+        current_user.salary_credit_day, today=next_month_date
+    )
+
     transactions = (
         Transaction.query.filter(
-            Transaction.user_id == current_user.id, Transaction.date >= cycle_start
+            Transaction.user_id == current_user.id,
+            Transaction.date >= cycle_start,
+            Transaction.date < next_cycle_start,
         )
         .order_by(Transaction.date.asc())
         .all()

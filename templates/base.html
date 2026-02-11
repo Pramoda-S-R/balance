@@ -68,6 +68,48 @@
             </div>
             <button type="submit" class="btn-primary">Update Protocol</button>
           </form>
+
+          <div
+            class="form-group"
+            style="
+              margin-top: 2.5rem;
+              border-top: 1px solid var(--glass-border);
+              padding-top: 2rem;
+            "
+          >
+            <label>Historical Operational Logs</label>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem">
+              <select
+                id="statementSelect"
+                style="
+                  flex: 1;
+                  padding: 0.8rem;
+                  background: rgba(0, 0, 0, 0.4);
+                  border: 1px solid var(--glass-border);
+                  color: white;
+                  border-radius: 4px;
+                  font-family: inherit;
+                "
+              >
+                <option value="">Select Cycle...</option>
+                {% for b in available_budgets %}
+                <option
+                  value="{{ b.month_start_date.year }}-{{ b.month_start_date.month }}"
+                >
+                  {{ b.month_start_date.strftime('%B %Y') }}
+                </option>
+                {% endfor %}
+              </select>
+              <button
+                type="button"
+                id="downloadPastBtn"
+                class="btn-secondary"
+                style="padding: 0.8rem 1.2rem"
+              >
+                Fetch
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -91,6 +133,8 @@
       const modal = document.getElementById("profileModal");
       const btn = document.getElementById("profileBtn");
       const span = document.getElementsByClassName("close-modal")[0];
+      const downloadPastBtn = document.getElementById("downloadPastBtn");
+      const statementSelect = document.getElementById("statementSelect");
 
       if (btn) {
         btn.onclick = function () {
@@ -101,6 +145,18 @@
       if (span) {
         span.onclick = function () {
           modal.style.display = "none";
+        };
+      }
+
+      if (downloadPastBtn) {
+        downloadPastBtn.onclick = function () {
+          const val = statementSelect.value;
+          if (val) {
+            const [year, month] = val.split("-");
+            window.location.href = `/download_statement?year=${year}&month=${month}`;
+          } else {
+            alert("Please select a cycle first.");
+          }
         };
       }
 
